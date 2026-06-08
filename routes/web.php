@@ -9,9 +9,15 @@ use App\Http\Controllers\Developer\DashboardController as DeveloperDashboard;
 
 
 // ===================== AUTH =====================
-Route::get('/', [LoginController::class, 'showLogin'])->name('login');
+// Bikin URL /login bisa diakses langsung (GET)
+Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Kalau user akses URL utama '/', oper aja langsung ke halaman login
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
 // ===================== STUDENT =====================
 // Tambahkan di dalam group middleware student:
@@ -45,7 +51,7 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
     Route::get('/teams/create', fn() => back())->name('teams.create');
     Route::get('/teams', fn() => back())->name('teams.index');
     Route::get('/teams/join', fn() => back())->name('teams.join');
-}); 
+});
 
 // ===================== TEACHER =====================
 Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
