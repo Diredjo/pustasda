@@ -376,14 +376,14 @@
 
         <button class="filter-chip {{ !request('filter') && !request('category') ? 'active' : '' }}"
             onclick="setFilter('')">Semua</button>
-        <button class="filter-chip {{ request('filter') === 'trending' ? 'active' : '' }}" onclick="setFilter('trending')"><i
-                class="fa-solid fa-fire"></i> Trending</button>
+        <button class="filter-chip {{ request('filter') === 'trending' ? 'active' : '' }}"
+            onclick="setFilter('trending')"><i class="fa-solid fa-fire"></i> Trending</button>
         <button class="filter-chip {{ request('filter') === 'terbaru' ? 'active' : '' }}" onclick="setFilter('terbaru')"><i
                 class="fa-solid fa-clock"></i> Terbaru</button>
-        <button class="filter-chip {{ request('filter') === 'nasional' ? 'active' : '' }}" onclick="setFilter('nasional')"><i
-                class="fa-solid fa-flag"></i> Nasional</button>
-        <button class="filter-chip {{ request('filter') === 'deadline' ? 'active' : '' }}" onclick="setFilter('deadline')"><i
-                class="fa-solid fa-hourglass"></i> Deadline Dekat</button>
+        <button class="filter-chip {{ request('filter') === 'nasional' ? 'active' : '' }}"
+            onclick="setFilter('nasional')"><i class="fa-solid fa-flag"></i> Nasional</button>
+        <button class="filter-chip {{ request('filter') === 'deadline' ? 'active' : '' }}"
+            onclick="setFilter('deadline')"><i class="fa-solid fa-hourglass"></i> Deadline Dekat</button>
 
         <select class="form-control" style="width:auto; padding:6px 12px; font-size:0.78rem;"
             onchange="setLevel(this.value)">
@@ -500,21 +500,27 @@
             // Loading state
             document.getElementById('erBody').innerHTML =
                 `<div style="padding:24px;">
-                <div class="skeleton" style="height:200px; border-radius:0; margin-bottom:18px;"></div>
-                <div style="padding:0 18px;">
-                    <div class="skeleton" style="height:14px; width:40%; margin-bottom:10px;"></div>
-                    <div class="skeleton" style="height:22px; margin-bottom:8px;"></div>
-                    <div class="skeleton" style="height:16px; width:60%; margin-bottom:18px;"></div>
-                    <div class="skeleton" style="height:12px; margin-bottom:8px;"></div>
-                    <div class="skeleton" style="height:12px; width:80%; margin-bottom:8px;"></div>
-                    <div class="skeleton" style="height:12px; width:70%;"></div>
-                </div>
-            </div>`;
+                        <div class="skeleton" style="height:200px; border-radius:0; margin-bottom:18px;"></div>
+                        <div style="padding:0 18px;">
+                            <div class="skeleton" style="height:14px; width:40%; margin-bottom:10px;"></div>
+                            <div class="skeleton" style="height:22px; margin-bottom:8px;"></div>
+                            <div class="skeleton" style="height:16px; width:60%; margin-bottom:18px;"></div>
+                            <div class="skeleton" style="height:12px; margin-bottom:8px;"></div>
+                            <div class="skeleton" style="height:12px; width:80%; margin-bottom:8px;"></div>
+                            <div class="skeleton" style="height:12px; width:70%;"></div>
+                        </div>
+                    </div>`;
 
-            fetch(`/student/explore/${id}`)
-                .then(r => r.json())
+            fetch(`/student/explore/${id}/detail`)
+                .then(r => {
+                    if (!r.ok) throw new Error('Data tidak ditemukan');
+                    return r.json();
+                })
                 .then(data => {
                     renderDetail(data);
+                })
+                .catch(err => {
+                    document.getElementById('erBody').innerHTML = `<p style="padding:20px; text-align:center;">Gagal memuat detail. Coba lagi.</p>`;
                 });
         }
 
@@ -527,17 +533,17 @@
             let stagesHtml = '';
             if (comp.stages && comp.stages.length > 1) {
                 stagesHtml = `<div class="er-stages">
-                <div class="er-desc-title"><i class="fa-solid fa-layer-group text-red"></i> Tahapan Lomba</div>
-                ${comp.stages.map(s => `
-                    <div class="er-stage-item">
-                        <div class="er-stage-num">${s.stage_number}</div>
-                        <div>
-                            <div style="font-weight:700;font-size:0.82rem;">${s.stage_name}</div>
-                            <div style="font-size:0.75rem;color:var(--gray);">${s.deadline ? 'Deadline: ' + s.deadline : ''}</div>
-                            <div style="font-size:0.78rem;margin-top:3px;">${s.description || ''}</div>
-                        </div>
-                    </div>`).join('')}
-            </div>`;
+                        <div class="er-desc-title"><i class="fa-solid fa-layer-group text-red"></i> Tahapan Lomba</div>
+                        ${comp.stages.map(s => `
+                            <div class="er-stage-item">
+                                <div class="er-stage-num">${s.stage_number}</div>
+                                <div>
+                                    <div style="font-weight:700;font-size:0.82rem;">${s.stage_name}</div>
+                                    <div style="font-size:0.75rem;color:var(--gray);">${s.deadline ? 'Deadline: ' + s.deadline : ''}</div>
+                                    <div style="font-size:0.78rem;margin-top:3px;">${s.description || ''}</div>
+                                </div>
+                            </div>`).join('')}
+                    </div>`;
             }
 
             const posterSrc = comp.poster
@@ -545,81 +551,81 @@
                 : null;
 
             document.getElementById('erBody').innerHTML = `
-            ${posterSrc
+                    ${posterSrc
                     ? `<img class="er-poster" src="${posterSrc}" alt="${comp.title}" onerror="this.outerHTML='<div class=\\'er-poster-ph\\'><i class=\\'fa-solid fa-trophy\\'></i></div>'">`
                     : `<div class="er-poster-ph"><i class="fa-solid fa-trophy"></i></div>`}
 
-            <div class="er-content">
-                <div class="er-cat" style="background:${comp.category?.color || 'var(--red)'}22;color:${comp.category?.color || 'var(--red)'};">
-                    <i class="fa-solid ${comp.category?.icon || 'fa-trophy'}"></i>
-                    ${comp.category?.name || '-'}
-                </div>
+                    <div class="er-content">
+                        <div class="er-cat" style="background:${comp.category?.color || 'var(--red)'}22;color:${comp.category?.color || 'var(--red)'};">
+                            <i class="fa-solid ${comp.category?.icon || 'fa-trophy'}"></i>
+                            ${comp.category?.name || '-'}
+                        </div>
 
-                <div class="er-title">${comp.title}</div>
-                <div class="er-organizer"><i class="fa-solid fa-building"></i> ${comp.organizer}</div>
+                        <div class="er-title">${comp.title}</div>
+                        <div class="er-organizer"><i class="fa-solid fa-building"></i> ${comp.organizer}</div>
 
-                <div class="er-tags">
-                    <span class="comp-tag ${levelMap[comp.level] || ''}">
-                        <i class="fa-solid fa-flag"></i> ${levelLabel[comp.level] || comp.level}
-                    </span>
-                    <span class="comp-tag ${comp.type === 'team' ? 'type-team' : 'type-solo'}">
-                        <i class="fa-solid ${comp.type === 'team' ? 'fa-users' : 'fa-user'}"></i>
-                        ${comp.type === 'team' ? `Tim (${comp.min_members}-${comp.max_members} orang)` : 'Mandiri'}
-                    </span>
-                    ${comp.field ? `<span class="comp-tag" style="background:var(--gray-light);color:var(--gray);">
-                        <i class="fa-solid ${comp.field.icon}"></i> ${comp.field.name}
-                    </span>` : ''}
-                </div>
+                        <div class="er-tags">
+                            <span class="comp-tag ${levelMap[comp.level] || ''}">
+                                <i class="fa-solid fa-flag"></i> ${levelLabel[comp.level] || comp.level}
+                            </span>
+                            <span class="comp-tag ${comp.type === 'team' ? 'type-team' : 'type-solo'}">
+                                <i class="fa-solid ${comp.type === 'team' ? 'fa-users' : 'fa-user'}"></i>
+                                ${comp.type === 'team' ? `Tim (${comp.min_members}-${comp.max_members} orang)` : 'Mandiri'}
+                            </span>
+                            ${comp.field ? `<span class="comp-tag" style="background:var(--gray-light);color:var(--gray);">
+                                <i class="fa-solid ${comp.field.icon}"></i> ${comp.field.name}
+                            </span>` : ''}
+                        </div>
 
-                <div class="er-info-row">
-                    <i class="fa-solid fa-calendar-alt"></i>
-                    <span class="er-info-label">Deadline Daftar</span>
-                    <span class="er-info-value">${comp.register_deadline || 'Tidak ditentukan'}</span>
-                </div>
-                <div class="er-info-row">
-                    <i class="fa-solid fa-calendar-xmark"></i>
-                    <span class="er-info-label">Deadline Submit</span>
-                    <span class="er-info-value">${comp.deadline}</span>
-                </div>
-                <div class="er-info-row">
-                    <i class="fa-solid fa-bullhorn"></i>
-                    <span class="er-info-label">Pengumuman</span>
-                    <span class="er-info-value">${comp.announcement_date || 'Belum ditentukan'}</span>
-                </div>
-                ${comp.link_registration ? `
-                <div class="er-info-row">
-                    <i class="fa-solid fa-link"></i>
-                    <span class="er-info-label">Link Daftar</span>
-                    <a href="${comp.link_registration}" target="_blank" class="er-info-value text-red" style="word-break:break-all;">
-                        Buka Link <i class="fa-solid fa-external-link"></i>
-                    </a>
-                </div>` : ''}
+                        <div class="er-info-row">
+                            <i class="fa-solid fa-calendar-alt"></i>
+                            <span class="er-info-label">Deadline Daftar</span>
+                            <span class="er-info-value">${comp.register_deadline || 'Tidak ditentukan'}</span>
+                        </div>
+                        <div class="er-info-row">
+                            <i class="fa-solid fa-calendar-xmark"></i>
+                            <span class="er-info-label">Deadline Submit</span>
+                            <span class="er-info-value">${comp.deadline}</span>
+                        </div>
+                        <div class="er-info-row">
+                            <i class="fa-solid fa-bullhorn"></i>
+                            <span class="er-info-label">Pengumuman</span>
+                            <span class="er-info-value">${comp.announcement_date || 'Belum ditentukan'}</span>
+                        </div>
+                        ${comp.link_registration ? `
+                        <div class="er-info-row">
+                            <i class="fa-solid fa-link"></i>
+                            <span class="er-info-label">Link Daftar</span>
+                            <a href="${comp.link_registration}" target="_blank" class="er-info-value text-red" style="word-break:break-all;">
+                                Buka Link <i class="fa-solid fa-external-link"></i>
+                            </a>
+                        </div>` : ''}
 
-                ${comp.description ? `
-                <div class="er-desc-title"><i class="fa-solid fa-align-left text-red"></i> Deskripsi</div>
-                <div class="er-desc">${comp.description}</div>` : ''}
+                        ${comp.description ? `
+                        <div class="er-desc-title"><i class="fa-solid fa-align-left text-red"></i> Deskripsi</div>
+                        <div class="er-desc">${comp.description}</div>` : ''}
 
-                ${comp.requirements ? `
-                <div class="er-desc-title"><i class="fa-solid fa-clipboard-list text-red"></i> Ketentuan</div>
-                <div class="er-desc">${comp.requirements}</div>` : ''}
+                        ${comp.requirements ? `
+                        <div class="er-desc-title"><i class="fa-solid fa-clipboard-list text-red"></i> Ketentuan</div>
+                        <div class="er-desc">${comp.requirements}</div>` : ''}
 
-                ${stagesHtml}
-            </div>
+                        ${stagesHtml}
+                    </div>
 
-            <div class="er-footer" id="erFooter-${comp.id}">
-                <button class="btn btn-primary" onclick="joinCompetition(${comp.id}, '${comp.type}', ${comp.total_stages})">
-                    <i class="fa-solid fa-right-to-bracket"></i> Ikut Lomba Ini
-                </button>
-                <button class="btn btn-secondary" id="saveBtn-${comp.id}"
-                        onclick="toggleSave(${comp.id})">
-                    <i class="fa-solid ${isSaved ? 'fa-bookmark' : 'fa-bookmark'}" id="saveIcon-${comp.id}"></i>
-                    ${isSaved ? 'Tersimpan' : 'Simpan'}
-                </button>
-                ${comp.link_registration ? `
-                <a href="${comp.link_registration}" target="_blank" class="btn btn-outline-red">
-                    <i class="fa-solid fa-external-link-alt"></i> Daftar Langsung
-                </a>` : ''}
-            </div>`;
+                    <div class="er-footer" id="erFooter-${comp.id}">
+                        <button class="btn btn-primary" onclick="joinCompetition(${comp.id}, '${comp.type}', ${comp.total_stages})">
+                            <i class="fa-solid fa-right-to-bracket"></i> Ikut Lomba Ini
+                        </button>
+                        <button class="btn btn-secondary" id="saveBtn-${comp.id}"
+                                onclick="toggleSave(${comp.id})">
+                            <i class="fa-solid ${isSaved ? 'fa-bookmark' : 'fa-bookmark'}" id="saveIcon-${comp.id}"></i>
+                            ${isSaved ? 'Tersimpan' : 'Simpan'}
+                        </button>
+                        ${comp.link_registration ? `
+                        <a href="${comp.link_registration}" target="_blank" class="btn btn-outline-red">
+                            <i class="fa-solid fa-external-link-alt"></i> Daftar Langsung
+                        </a>` : ''}
+                    </div>`;
 
             // Init countdown
             if (comp.deadline) {
@@ -645,37 +651,37 @@
         function joinCompetition(id, type, stages) {
             if (type === 'team') {
                 openModal('Ikut Lomba Tim', `
-                <p style="font-size:0.88rem;color:var(--gray);margin-bottom:20px;">
-                    Lomba ini adalah lomba <strong>berkelompok</strong>. Pilih mode bergabung:
-                </p>
-                <div style="display:flex;flex-direction:column;gap:10px;">
-                    <button class="btn btn-primary btn-block" onclick="createTeam(${id})">
-                        <i class="fa-solid fa-plus"></i> Buat Tim Baru
-                    </button>
-                    <button class="btn btn-secondary btn-block" onclick="joinTeamByCode(${id})">
-                        <i class="fa-solid fa-link"></i> Masuk via Kode Undangan
-                    </button>
-                    <button class="btn btn-outline-red btn-block" onclick="browseTeams(${id})">
-                        <i class="fa-solid fa-search"></i> Cari Tim yang Butuh Anggota
-                    </button>
-                </div>
-            `);
+                        <p style="font-size:0.88rem;color:var(--gray);margin-bottom:20px;">
+                            Lomba ini adalah lomba <strong>berkelompok</strong>. Pilih mode bergabung:
+                        </p>
+                        <div style="display:flex;flex-direction:column;gap:10px;">
+                            <button class="btn btn-primary btn-block" onclick="createTeam(${id})">
+                                <i class="fa-solid fa-plus"></i> Buat Tim Baru
+                            </button>
+                            <button class="btn btn-secondary btn-block" onclick="joinTeamByCode(${id})">
+                                <i class="fa-solid fa-link"></i> Masuk via Kode Undangan
+                            </button>
+                            <button class="btn btn-outline-red btn-block" onclick="browseTeams(${id})">
+                                <i class="fa-solid fa-search"></i> Cari Tim yang Butuh Anggota
+                            </button>
+                        </div>
+                    `);
             } else {
                 openModal('Konfirmasi Ikut Lomba', `
-                <p style="font-size:0.88rem;color:var(--gray);margin-bottom:20px;">
-                    Apakah kamu yakin ingin mengikuti lomba ini secara <strong>mandiri</strong>?
-                </p>
-                <form method="POST" action="/student/participations/join">
-                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                    <input type="hidden" name="competition_id" value="${id}">
-                    <div style="display:flex;gap:8px;">
-                        <button type="submit" class="btn btn-primary btn-block">
-                            <i class="fa-solid fa-check"></i> Ya, Ikut Sekarang
-                        </button>
-                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Batal</button>
-                    </div>
-                </form>
-            `);
+                        <p style="font-size:0.88rem;color:var(--gray);margin-bottom:20px;">
+                            Apakah kamu yakin ingin mengikuti lomba ini secara <strong>mandiri</strong>?
+                        </p>
+                        <form method="POST" action="/student/participations/join">
+                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="competition_id" value="${id}">
+                            <div style="display:flex;gap:8px;">
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    <i class="fa-solid fa-check"></i> Ya, Ikut Sekarang
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="closeModal()">Batal</button>
+                            </div>
+                        </form>
+                    `);
             }
         }
 
@@ -736,17 +742,17 @@
         }
         function joinTeamByCode(id) {
             openModal('Masuk via Kode Undangan', `
-            <div class="form-group">
-                <label>Kode Undangan Tim</label>
-                <input type="text" class="form-control" id="inviteCodeInput" placeholder="Contoh: TEAM-ABC123" style="text-transform:uppercase; letter-spacing:2px;">
-            </div>
-            <div style="display:flex;gap:8px;margin-top:8px;">
-                <button class="btn btn-primary" onclick="submitJoinCode(${id})">
-                    <i class="fa-solid fa-right-to-bracket"></i> Bergabung
-                </button>
-                <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
-            </div>
-        `);
+                    <div class="form-group">
+                        <label>Kode Undangan Tim</label>
+                        <input type="text" class="form-control" id="inviteCodeInput" placeholder="Contoh: TEAM-ABC123" style="text-transform:uppercase; letter-spacing:2px;">
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                        <button class="btn btn-primary" onclick="submitJoinCode(${id})">
+                            <i class="fa-solid fa-right-to-bracket"></i> Bergabung
+                        </button>
+                        <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
+                    </div>
+                `);
         }
         function browseTeams(id) {
             closeModal();

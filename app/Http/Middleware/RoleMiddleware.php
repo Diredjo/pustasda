@@ -10,6 +10,7 @@ class RoleMiddleware
 {
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
+        // PASTI-KAN ADA INI DI AWAL!
         if (!auth()->check()) {
             return redirect()->route('login');
         }

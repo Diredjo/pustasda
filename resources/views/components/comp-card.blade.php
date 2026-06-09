@@ -88,7 +88,7 @@
     $deadlineSoon = $competition->deadline->diffInDays(now()) <= 7 && $competition->deadline->isFuture();
 @endphp
 
-<div class="comp-card" onclick="window.location='{{ route('student.explore.show', $competition->id) }}'">
+<div class="comp-card" onclick="selectComp({{ $competition->id }}, null)">
     @if($competition->is_trending)
         <div class="comp-badge-trending">
             <i class="fa-solid fa-fire"></i> Trending

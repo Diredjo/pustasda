@@ -3,27 +3,51 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Mentorship;
+use App\Models\Participation;
 use App\Models\Competition;
-use App\Models\AppSetting;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $trending = Competition::where('is_trending', true)->where('is_active', true)->take(4)->get();
-        $terbaru = Competition::where('is_active', true)->latest()->take(4)->get();
-        $nasional = Competition::where('level', 'nasional')->where('is_active', true)->take(4)->get();
-        $deadlineSoon = Competition::where('is_active', true)
+        $user = auth()->user();
+
+        $pendingMentors = Mentorship::with(['participation.competition', 'participation.user.studentProfile'])
+            ->where('teacher_id', $user->id)
+            ->where('status', 'pending')
+            ->latest()->get();
+
+        $activeMentors = Mentorship::with(['participation.competition', 'participation.user.studentProfile', 'participation.steps'])
+            ->where('teacher_id', $user->id)
+            ->where('status', 'accepted')
+            ->whereHas('participation', fn($q) => $q->whereIn('status', ['registered', 'in_progress', 'submitted']))
+            ->latest()->get();
+
+        $completedMentors = Mentorship::with(['participation.competition', 'participation.user'])
+            ->where('teacher_id', $user->id)
+            ->where('status', 'accepted')
+            ->whereHas('participation', fn($q) => $q->where('status', 'completed'))
+            ->count();
+
+        $totalMentored = Mentorship::where('teacher_id', $user->id)->where('status', 'accepted')->count();
+        $totalWins = Mentorship::where('teacher_id', $user->id)
+            ->where('status', 'accepted')
+            ->whereHas('participation', fn($q) => $q->whereIn('result', ['juara_1', 'juara_2', 'juara_3']))
+            ->count();
+
+        $latestComps = Competition::with('category')
+            ->where('is_active', true)
             ->whereDate('deadline', '>=', now())
-            ->whereDate('deadline', '<=', now()->addDays(7))
-            ->take(4)->get();
+            ->latest()->take(5)->get();
 
         return view('teacher.dashboard', compact(
-            'trending',
-            'terbaru',
-            'nasional',
-            'deadlineSoon'
+            'pendingMentors',
+            'activeMentors',
+            'completedMentors',
+            'totalMentored',
+            'totalWins',
+            'latestComps'
         ));
     }
 }

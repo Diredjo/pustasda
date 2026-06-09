@@ -90,12 +90,17 @@
                         @endswitch
                     </div>
                 </div>
-                <a href="{{ route(auth()->user()->role.'.profile') ?? '#' }}">
-                    <i class="fa-solid fa-id-card text-gray"></i> Profil Saya
-                </a>
-                <a href="{{ route(auth()->user()->role.'.settings') ?? '#' }}">
-                    <i class="fa-solid fa-gear text-gray"></i> Pengaturan
-                </a>
+                @php
+    $role = auth()->user()->role ?? 'student';
+    $profileRoute  = Route::has($role.'.profile')  ? route($role.'.profile')  : '#';
+    $settingsRoute = Route::has($role.'.settings') ? route($role.'.settings') : '#';
+@endphp
+<a href="{{ $profileRoute }}">
+    <i class="fa-solid fa-id-card text-gray"></i> Profil Saya
+</a>
+<a href="{{ $settingsRoute }}">
+    <i class="fa-solid fa-gear text-gray"></i> Pengaturan
+</a>
                 <div class="dd-divider"></div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
