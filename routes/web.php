@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-// Import Controllers
+// Auth Controller
 use App\Http\Controllers\Auth\LoginController;
 
 // Student Controllers
@@ -29,37 +29,43 @@ use App\Http\Controllers\Admin\FieldController as AdminField;
 use App\Http\Controllers\Admin\NotificationController as AdminNotif;
 use App\Http\Controllers\Developer\DashboardController as DeveloperDashboard;
 
-// ==================================================
-// AUTHENTICATION
-// ==================================================
-Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
-Route::post('/login', [LoginController::class, 'login'])->name('login.post');
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-
+// =========================================================================
+// 1. GUEST & AUTHENTICATION ROUTES
+// =========================================================================
 Route::get('/', fn() => redirect()->route('login'));
 
-// ==================================================
-// STUDENT ROUTES
-// ==================================================
+Route::controller(LoginController::class)->group(function () {
+    Route::get('/login', 'showLogin')->name('login');
+    Route::post('/login', 'login')->name('login.post');
+    Route::post('/logout', 'logout')->name('logout');
+});
+
+// =========================================================================
+// 2. STUDENT ROUTES (Akses: Siswa SMK Telkom Sidoarjo / Skomda)
+// =========================================================================
 Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
+
+    // Dashboard Utama
     Route::get('/dashboard', [StudentDashboard::class, 'index'])->name('dashboard');
 
-    // Explorer
-    Route::get('/explore', [ExploreController::class, 'index'])->name('explore');
-    Route::get('/explore/{competition}/detail', [ExploreController::class, 'show'])->name('explore.show');
-    Route::post('/explore/{competition}/save', [ExploreController::class, 'save'])->name('explore.save');
-
-    // Participations
-    Route::controller(ParticipationController::class)->group(function () {
-        Route::get('/participations', 'index')->name('participations');
-        Route::get('/participations/{participation}', 'show')->name('participations.show');
-        Route::post('/participations/join', 'join')->name('participations.join');
-        Route::post('/participations/{participation}/step', 'confirmStep')->name('participations.step');
-        Route::post('/participations/{participation}/result', 'submitResult')->name('participations.result');
-        Route::post('/participations/{participation}/mentor', 'requestMentor')->name('participations.mentor');
+    // Explorer (Kompetisi & Prestasi)
+    Route::controller(ExploreController::class)->prefix('explore')->name('explore.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{competition}/detail', 'show')->name('show');
+        Route::post('/{competition}/save', 'save')->name('save');
     });
 
-    // Teams
+    // Participations (Alur Mengikuti Lomba)
+    Route::controller(ParticipationController::class)->prefix('participations')->name('participations.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{participation}', 'show')->name('show');
+        Route::post('/join', 'join')->name('join');
+        Route::post('/{participation}/step', 'confirmStep')->name('step');
+        Route::post('/{participation}/result', 'submitResult')->name('result');
+        Route::post('/{participation}/mentor', 'requestMentor')->name('mentor');
+    });
+
+    // Teams (Manajemen Kelompok Lomba)
     Route::controller(TeamController::class)->prefix('teams')->name('teams.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
@@ -71,93 +77,121 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
         Route::post('/{team}/respond/{member}', 'respond')->name('respond');
     });
 
-    // Settings
-    Route::prefix('settings')->name('settings.')->group(function () {
+    // Settings & Kuisioner Keahlian
+    Route::controller(SettingsController::class)->prefix('settings')->name('settings.')->group(function () {
         Route::get('/', fn() => redirect()->route('student.settings.profile'));
-        Route::get('/profile', [SettingsController::class, 'profile'])->name('profile');
-        Route::post('/profile', [SettingsController::class, 'updateProfile'])->name('profile.update');
-        Route::get('/quiz', [SettingsController::class, 'quiz'])->name('quiz');
-        Route::post('/quiz', [SettingsController::class, 'processQuiz'])->name('quiz.process');
-        Route::get('/privacy', [SettingsController::class, 'privacy'])->name('privacy');
-        Route::post('/privacy', [SettingsController::class, 'updatePrivacy'])->name('privacy.update');
-        Route::get('/notification', [SettingsController::class, 'notification'])->name('notification');
-        Route::post('/notification', [SettingsController::class, 'updateNotification'])->name('notification.update');
+        Route::get('/profile', 'profile')->name('profile');
+        Route::post('/profile', 'updateProfile')->name('profile.update');
+        Route::get('/quiz', 'quiz')->name('quiz');
+        Route::post('/quiz', 'processQuiz')->name('quiz.process');
+        Route::get('/privacy', 'privacy')->name('privacy');
+        Route::post('/privacy', 'updatePrivacy')->name('privacy.update');
+        Route::get('/notification', 'notification')->name('notification');
+        Route::post('/notification', 'updateNotification')->name('notification.update');
     });
 
-    // Recapitulation & Leaderboard
+    // Rekapitulasi Nilai & Peringkat / Leaderboard
     Route::get('/recapitulation', [RecapitulationController::class, 'index'])->name('recapitulation');
     Route::post('/recapitulation/summarize', [RecapitulationController::class, 'summarize'])->name('recapitulation.summarize');
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
 
-    // Notifications
-    Route::post('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
-    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readAll');
+    // Pusat Notifikasi Student
+    Route::controller(NotificationController::class)->prefix('notifications')->name('notifications.')->group(function () {
+        Route::post('/{id}/read', 'read')->name('read');
+        Route::post('/read-all', 'readAll')->name('readAll');
+    });
 });
 
-// ==================================================
-// TEACHER ROUTES
-// ==================================================
+// =========================================================================
+// 3. TEACHER ROUTES (Akses: Pembimbing / Guru Produktif)
+// =========================================================================
 Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
+
+    // Dashboard Utama Guru
     Route::get('/dashboard', [TeacherDashboard::class, 'index'])->name('dashboard');
 
-    // Bimbingan
-    Route::get('/mentorships', [TeacherMentorship::class, 'index'])->name('mentorships');
-    Route::get('/mentorships/{mentorship}', [TeacherMentorship::class, 'show'])->name('mentorships.show');
-    Route::post('/mentorships/{mentorship}/respond', [TeacherMentorship::class, 'respond'])->name('mentorships.respond');
+    // Manajemen Bimbingan Lomba Siswa
+    Route::controller(TeacherMentorship::class)->prefix('mentorships')->name('mentorships.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{mentorship}', 'show')->name('show');
+        Route::post('/{mentorship}/respond', 'respond')->name('respond');
+    });
 
-    // Placeholder
+    // Pengaturan Akun Guru
     Route::get('/profile', fn() => view('teacher.profile'))->name('profile');
     Route::get('/settings', fn() => redirect()->route('teacher.profile'))->name('settings');
 
-    // Notif
-    Route::post('/notifications/{id}/read', [TeacherNotif::class, 'read'])->name('notifications.read');
-    Route::post('/notifications/read-all', [TeacherNotif::class, 'readAll'])->name('notifications.readAll');
+    // Pusat Notifikasi Guru
+    Route::controller(TeacherNotif::class)->prefix('notifications')->name('notifications.')->group(function () {
+        Route::post('/{id}/read', 'read')->name('read');
+        Route::post('/read-all', 'readAll')->name('readAll');
+    });
 });
 
-// ==================================================
-// ADMIN & DEVELOPER ROUTES
-// ==================================================
+// =========================================================================
+// 4. ADMIN & DEVELOPER ROUTES (Manajemen Backend Pustasda)
+// =========================================================================
 Route::middleware(['auth', 'role:admin,developer'])->prefix('admin')->name('admin.')->group(function () {
+
+    // Dashboard Admin Utama
     Route::get('/dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
 
-    // Users
-    Route::get('/users', [AdminUser::class, 'index'])->name('users.index');
-    Route::get('/users/create', [AdminUser::class, 'create'])->name('users.create');
-    Route::post('/users', [AdminUser::class, 'store'])->name('users.store');
-    Route::get('/users/{user}/edit', [AdminUser::class, 'edit'])->name('users.edit');
-    Route::put('/users/{user}', [AdminUser::class, 'update'])->name('users.update');
-    Route::delete('/users/{user}', [AdminUser::class, 'destroy'])->name('users.destroy');
-    Route::post('/users/{user}/toggle-active', [AdminUser::class, 'toggleActive'])->name('users.toggle');
+    // --- SUB-KATEGORI: KELOLA DATA USERS & MAHASISWA ---
+    Route::controller(AdminUser::class)->prefix('users')->name('users.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{user}/edit', 'edit')->name('edit');
+        Route::put('/{user}', 'update')->name('update');
+        Route::delete('/{user}', 'destroy')->name('destroy');
+        Route::post('/{user}/toggle-active', 'toggleActive')->name('toggle');
 
-    // Competitions
-    Route::get('/competitions', [AdminCompetition::class, 'index'])->name('competitions.index');
-    Route::get('/competitions/create', [AdminCompetition::class, 'create'])->name('competitions.create');
-    Route::post('/competitions', [AdminCompetition::class, 'store'])->name('competitions.store');
-    Route::get('/competitions/{competition}/edit', [AdminCompetition::class, 'edit'])->name('competitions.edit');
-    Route::put('/competitions/{competition}', [AdminCompetition::class, 'update'])->name('competitions.update');
-    Route::delete('/competitions/{competition}', [AdminCompetition::class, 'destroy'])->name('competitions.destroy');
-    Route::post('/competitions/{competition}/toggle', [AdminCompetition::class, 'toggleActive'])->name('competitions.toggle');
+        // Fitur Tambah Masal / Bulk Create (Burst)
+        Route::get('/burst', 'burstCreate')->name('burst');
+        Route::post('/burst/preview', 'burstPreview')->name('bulk-preview');
+        Route::post('/burst/store', 'burstStore')->name('bulk-store');
+    });
 
-    // Categories
-    Route::get('/categories', [AdminCategory::class, 'index'])->name('categories.index');
-    Route::post('/categories', [AdminCategory::class, 'store'])->name('categories.store');
-    Route::put('/categories/{category}', [AdminCategory::class, 'update'])->name('categories.update');
-    Route::delete('/categories/{category}', [AdminCategory::class, 'destroy'])->name('categories.destroy');
+    // --- SUB-KATEGORI: KELOLA EVENT KOMPETISI / LKS ---
+    Route::controller(AdminCompetition::class)->prefix('competitions')->name('competitions.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{competition}/edit', 'edit')->name('edit');
+        Route::put('/{competition}', 'update')->name('update');
+        Route::delete('/{competition}', 'destroy')->name('destroy');
+        Route::post('/{competition}/toggle', 'toggleActive')->name('toggle');
+    });
 
-    // Fields
-    Route::get('/fields', [AdminField::class, 'index'])->name('fields.index');
-    Route::post('/fields', [AdminField::class, 'store'])->name('fields.store');
-    Route::put('/fields/{field}', [AdminField::class, 'update'])->name('fields.update');
-    Route::delete('/fields/{field}', [AdminField::class, 'destroy'])->name('fields.destroy');
+    // --- SUB-KATEGORI: KELOLA KATEGORI LOMBA ---
+    Route::controller(AdminCategory::class)->prefix('categories')->name('categories.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{category}', 'update')->name('update');
+        Route::delete('/{category}', 'destroy')->name('destroy');
+    });
 
-    // Leaderboard
+    // --- SUB-KATEGORI: Kelola Bidang / Jurusan (RPL, TKJ, DKV, dll.) ---
+    Route::controller(AdminField::class)->prefix('fields')->name('fields.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{field}', 'update')->name('update');
+        Route::delete('/{field}', 'destroy')->name('destroy');
+    });
+
+    // Monitoring Leaderboard Berprestasi Sekolah
     Route::get('/leaderboard', fn() => view('admin.leaderboard'))->name('leaderboard');
 
-    // Notifications
-    Route::post('/notifications/{id}/read', [AdminNotif::class, 'read'])->name('notifications.read');
-    Route::post('/notifications/read-all', [AdminNotif::class, 'readAll'])->name('notifications.readAll');
+    // Pusat Notifikasi Admin
+    Route::controller(AdminNotif::class)->prefix('notifications')->name('notifications.')->group(function () {
+        Route::post('/{id}/read', 'read')->name('read');
+        Route::post('/read-all', 'readAll')->name('readAll');
+    });
 });
 
+// =========================================================================
+// 5. DEVELOPER SPECIFIC ROUTES
+// =========================================================================
 Route::middleware(['auth', 'role:developer'])->prefix('developer')->name('developer.')->group(function () {
     Route::get('/dashboard', [DeveloperDashboard::class, 'index'])->name('dashboard');
 });

@@ -13,133 +13,68 @@
         'kota' => 'Kota',
         default => 'Sekolah',
     };
-    $deadlineSoon = $competition->deadline->diffInDays(now()) <= 7 && $competition->deadline->isFuture();
+    $deadlineSoon = false;
+    if (isset($competition->deadline) && $competition->deadline instanceof \Carbon\Carbon) {
+        $deadlineSoon = $competition->deadline->diffInDays(now()) <= 7 && $competition->deadline->isFuture();
+    }
 @endphp
 
-<div class="comp-card" onclick="window.location='{{ route('student.explore.show', $competition->id) }}'">
-    @if($competition->is_trending)
-        <div class="comp-badge-trending">
-            <i class="fa-solid fa-fire"></i> Trending
-        </div>
-    @endif
+{{-- Menggunakan tag <a> link murni, dijamin bisa diklik tanpa ketergantungan JS --}}
+    <a href="{{ route('student.explore', ['selected' => $competition->id]) }}" class="comp-card"
+        style="text-decoration: none; color: inherit; display: block;">
+        @if($competition->is_trending)
+            <div class="comp-badge-trending">
+                <i class="fa-solid fa-fire"></i> Trending
+            </div>
+        @endif
 
-    {{-- Cover --}}
-    @if($competition->cover && file_exists(public_path('storage/' . $competition->cover)))
-        <img class="comp-cover" src="{{ asset('storage/' . $competition->cover) }}" alt="{{ $competition->title }}">
-    @else
-        <div class="comp-cover-placeholder">
-            <i class="fa-solid fa-trophy"></i>
-        </div>
-    @endif
+        {{-- Cover --}}
+        @if($competition->cover && \Illuminate\Support\Facades\Storage::disk('public')->exists($competition->cover))
+            <img class="comp-cover" src="{{ asset('storage/' . $competition->cover) }}" alt="{{ $competition->title }}">
+        @else
+            <div class="comp-cover-placeholder">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+        @endif
 
-    <div class="comp-body">
-        {{-- Kategori --}}
-        <div class="comp-cat"
-            style="background:{{ $competition->category->color ?? 'var(--red)' }}22; color:{{ $competition->category->color ?? 'var(--red)' }};">
-            <i class="fa-solid {{ $competition->category->icon ?? 'fa-trophy' }}"></i>
-            {{ $competition->category->name ?? '-' }}
-        </div>
+        <div class="comp-body">
+            {{-- Kategori --}}
+            <div class="comp-cat"
+                style="background:{{ $competition->category->color ?? '#dc3545' }}22; color:{{ $competition->category->color ?? '#dc3545' }};">
+                <i class="fa-solid {{ $competition->category->icon ?? 'fa-trophy' }}"></i>
+                {{ $competition->category->name ?? '-' }}
+            </div>
 
-        {{-- Judul --}}
-        <div class="comp-title">{{ $competition->title }}</div>
+            {{-- Judul --}}
+            <div class="comp-title">{{ $competition->title }}</div>
 
-        {{-- Penyelenggara --}}
-        <div class="comp-organizer">
-            <i class="fa-solid fa-building"></i>
-            {{ $competition->organizer }}
-        </div>
+            {{-- Penyelenggara --}}
+            <div class="comp-organizer">
+                <i class="fa-solid fa-building"></i>
+                {{ $competition->organizer }}
+            </div>
 
-        {{-- Meta --}}
-        <div class="comp-meta">
-            <span class="comp-tag {{ $levelClass }}">
-                <i class="fa-solid fa-flag"></i> {{ $levelLabel }}
-            </span>
-            <span class="comp-tag {{ $competition->type === 'team' ? 'type-team' : 'type-solo' }}">
-                <i class="fa-solid {{ $competition->type === 'team' ? 'fa-users' : 'fa-user' }}"></i>
-                {{ $competition->type === 'team' ? 'Tim' : 'Mandiri' }}
-            </span>
-            @if($competition->deadline->isFuture())
-                <span class="comp-tag {{ $deadlineSoon ? 'deadline-soon' : 'deadline-ok' }}">
-                    <i class="fa-solid fa-calendar-xmark"></i>
-                    {{ $competition->deadline->format('d M Y') }}
+            {{-- Meta --}}
+            <div class="comp-meta">
+                <span class="comp-tag {{ $levelClass }}">
+                    <i class="fa-solid fa-flag"></i> {{ $levelLabel }}
                 </span>
-            @else
-                <span class="comp-tag" style="background:#f8d7da;color:#721c24;">
-                    <i class="fa-solid fa-calendar-xmark"></i> Berakhir
+                <span class="comp-tag {{ $competition->type === 'team' ? 'type-team' : 'type-solo' }}">
+                    <i class="fa-solid {{ $competition->type === 'team' ? 'fa-users' : 'fa-user' }}"></i>
+                    {{ $competition->type === 'team' ? 'Tim' : 'Mandiri' }}
                 </span>
-            @endif
+                @if(isset($competition->deadline) && $competition->deadline instanceof \Carbon\Carbon)
+                    @if($competition->deadline->isFuture())
+                        <span class="comp-tag {{ $deadlineSoon ? 'deadline-soon' : 'deadline-ok' }}">
+                            <i class="fa-solid fa-calendar-xmark"></i>
+                            {{ $competition->deadline->format('d M Y') }}
+                        </span>
+                    @else
+                        <span class="comp-tag" style="background:#f8d7da;color:#721c24;">
+                            <i class="fa-solid fa-calendar-xmark"></i> Berakhir
+                        </span>
+                    @endif
+                @endif
+            </div>
         </div>
-    </div>
-</div>@php
-    $levelClass = match ($competition->level) {
-        'nasional' => 'level-nasional',
-        'internasional' => 'level-internasional',
-        'provinsi' => 'level-provinsi',
-        'kota' => 'level-kota',
-        default => 'level-sekolah',
-    };
-    $levelLabel = match ($competition->level) {
-        'nasional' => 'Nasional',
-        'internasional' => 'Internasional',
-        'provinsi' => 'Provinsi',
-        'kota' => 'Kota',
-        default => 'Sekolah',
-    };
-    $deadlineSoon = $competition->deadline->diffInDays(now()) <= 7 && $competition->deadline->isFuture();
-@endphp
-
-<div class="comp-card" onclick="selectComp({{ $competition->id }}, null)">
-    @if($competition->is_trending)
-        <div class="comp-badge-trending">
-            <i class="fa-solid fa-fire"></i> Trending
-        </div>
-    @endif
-
-    {{-- Cover --}}
-    @if($competition->cover && file_exists(public_path('storage/' . $competition->cover)))
-        <img class="comp-cover" src="{{ asset('storage/' . $competition->cover) }}" alt="{{ $competition->title }}">
-    @else
-        <div class="comp-cover-placeholder">
-            <i class="fa-solid fa-trophy"></i>
-        </div>
-    @endif
-
-    <div class="comp-body">
-        {{-- Kategori --}}
-        <div class="comp-cat"
-            style="background:{{ $competition->category->color ?? 'var(--red)' }}22; color:{{ $competition->category->color ?? 'var(--red)' }};">
-            <i class="fa-solid {{ $competition->category->icon ?? 'fa-trophy' }}"></i>
-            {{ $competition->category->name ?? '-' }}
-        </div>
-
-        {{-- Judul --}}
-        <div class="comp-title">{{ $competition->title }}</div>
-
-        {{-- Penyelenggara --}}
-        <div class="comp-organizer">
-            <i class="fa-solid fa-building"></i>
-            {{ $competition->organizer }}
-        </div>
-
-        {{-- Meta --}}
-        <div class="comp-meta">
-            <span class="comp-tag {{ $levelClass }}">
-                <i class="fa-solid fa-flag"></i> {{ $levelLabel }}
-            </span>
-            <span class="comp-tag {{ $competition->type === 'team' ? 'type-team' : 'type-solo' }}">
-                <i class="fa-solid {{ $competition->type === 'team' ? 'fa-users' : 'fa-user' }}"></i>
-                {{ $competition->type === 'team' ? 'Tim' : 'Mandiri' }}
-            </span>
-            @if($competition->deadline->isFuture())
-                <span class="comp-tag {{ $deadlineSoon ? 'deadline-soon' : 'deadline-ok' }}">
-                    <i class="fa-solid fa-calendar-xmark"></i>
-                    {{ $competition->deadline->format('d M Y') }}
-                </span>
-            @else
-                <span class="comp-tag" style="background:#f8d7da;color:#721c24;">
-                    <i class="fa-solid fa-calendar-xmark"></i> Berakhir
-                </span>
-            @endif
-        </div>
-    </div>
-</div>
+    </a>

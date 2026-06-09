@@ -36,13 +36,16 @@
             border-radius: 50%;
         }
 
-        .welcome-banner .wb-icon {
+        /* Modifikasi style piala PNG agar pas posisinya di kanan banner */
+        .welcome-banner .wb-png-trophy {
             position: absolute;
             right: 36px;
-            top: 50%;
+            top: 65%;
             transform: translateY(-50%);
-            font-size: 4.5rem;
-            opacity: 0.18;
+            width: 275px;
+            height: auto;
+            object-fit: contain;
+            pointer-events: none;
         }
 
         .welcome-banner .wb-greeting {
@@ -258,7 +261,8 @@
 
     {{-- Welcome Banner --}}
     <div class="welcome-banner">
-        <i class="fa-solid fa-trophy wb-icon"></i>
+        <img src="{{ asset('images/piala.png') }}" alt="Piala" class="wb-png-trophy">
+        
         <div class="wb-greeting">
             <i class="fa-solid fa-sun"></i>
             Selamat datang kembali,

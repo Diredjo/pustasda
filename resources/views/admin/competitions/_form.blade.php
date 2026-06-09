@@ -62,6 +62,11 @@
                 value="{{ old('link_registration', $competition->link_registration ?? '') }}" placeholder="https://...">
         </div>
         <div class="form-group">
+            <label>Link Guidebook</label>
+            <input type="url" name="guidebook_link" class="form-control"
+                value="{{ old('guidebook_link', $competition->guidebook_link ?? '') }}" placeholder="https://...">
+        </div>
+        <div class="form-group">
             <label>Kategori <span style="color:var(--red);">*</span></label>
             <select name="category_id" class="form-control" required>
                 <option value="">-- Pilih Kategori --</option>

@@ -77,14 +77,22 @@
         <span
             class="er-info-value">{{ $comp->announcement_date ? $comp->announcement_date->format('d M Y') : 'Belum ditentukan' }}</span>
     </div>
-    @if($comp->link_registration)
-        <div class="er-info-row">
+    @if($comp->link_registration || $comp->guidebook_link)
+        <div class="er-info-row" style="align-items:flex-start; gap:12px; flex-wrap:wrap;">
             <i class="fa-solid fa-link"></i>
-            <span class="er-info-label">Link Daftar</span>
-            <a href="{{ $comp->link_registration }}" target="_blank" class="er-info-value text-red"
-                style="word-break:break-all;">
-                Buka Link <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.7rem;"></i>
-            </a>
+            <span class="er-info-label" style="min-width:110px;">Tautan</span>
+            <span class="er-info-value" style="display:flex; gap:8px; flex-wrap:wrap;">
+                @if($comp->link_registration)
+                    <a href="{{ $comp->link_registration }}" target="_blank" class="btn btn-outline-red btn-sm" style="font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Daftar
+                    </a>
+                @endif
+                @if($comp->guidebook_link)
+                    <a href="{{ $comp->guidebook_link }}" target="_blank" class="btn btn-secondary btn-sm" style="font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-book-open"></i> Guidebook
+                    </a>
+                @endif
+            </span>
         </div>
     @endif
 
@@ -134,6 +142,11 @@
     @if($comp->link_registration)
         <a href="{{ $comp->link_registration }}" target="_blank" class="btn btn-outline-red btn-sm">
             <i class="fa-solid fa-external-link-alt"></i> Daftar Langsung
+        </a>
+    @endif
+    @if($comp->guidebook_link)
+        <a href="{{ $comp->guidebook_link }}" target="_blank" class="btn btn-secondary btn-sm">
+            <i class="fa-solid fa-book-open"></i> Guidebook
         </a>
     @endif
 </div>

@@ -17,6 +17,7 @@ class Competition extends Model
         'description',
         'requirements',
         'link_registration',
+        'guidebook_link',
         'poster',
         'cover',
         'register_deadline',

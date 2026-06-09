@@ -61,9 +61,16 @@
                 </a>
             @endif
         </form>
-        <a href="{{ route('admin.users.create', ['role' => $role]) }}" class="btn btn-primary">
-            <i class="fa-solid fa-plus"></i> Tambah {{ $role === 'student' ? 'Siswa' : 'Guru' }}
-        </a>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="{{ route('admin.users.create', ['role' => $role]) }}" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Tambah {{ $role === 'student' ? 'Siswa' : 'Guru' }}
+            </a>
+
+            <a href="{{ route('admin.users.burst', ['role' => $role]) }}" class="btn btn-danger">
+                <i class="fa-solid fa-bolt"></i> Burst Tambah {{ $role === 'student' ? 'Siswa' : 'Guru' }}
+            </a>
+        </div>
     </div>
 
     <div class="table-card">
@@ -73,6 +80,7 @@
                 {{ $users->total() }} {{ $role === 'student' ? 'Siswa' : 'Guru' }} Ditemukan
             </h4>
         </div>
+
         <table class="data-table">
             <thead>
                 <tr>
@@ -92,6 +100,7 @@
                     <th>Aksi</th>
                 </tr>
             </thead>
+
             <tbody>
                 @forelse($users as $i => $user)
                     <tr>
@@ -105,6 +114,7 @@
                                 </div>
                             </div>
                         </td>
+
                         @if($role === 'student')
                             <td>{{ $user->studentProfile->nis ?? '-' }}</td>
                             <td>{{ $user->studentProfile->kelas ?? '-' }}</td>
@@ -114,7 +124,9 @@
                             <td>{{ $user->teacherProfile->bidang_keahlian ?? '-' }}</td>
                             <td>{{ $user->teacherProfile->jabatan ?? '-' }}</td>
                         @endif
+
                         <td style="font-size:.8rem;">{{ $user->wa_number ?? '-' }}</td>
+
                         <td>
                             @if($user->is_active)
                                 <span class="badge-role" style="background:#d4edda;color:#155724;">Aktif</span>
@@ -122,23 +134,23 @@
                                 <span class="badge-role" style="background:#f8d7da;color:#721c24;">Nonaktif</span>
                             @endif
                         </td>
+
                         <td>
                             <div class="actions">
                                 <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-secondary" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
                                 </a>
+
                                 <form method="POST" action="{{ route('admin.users.toggle', $user) }}" style="display:inline;">
                                     @csrf
-                                    <button type="submit" class="btn btn-sm btn-secondary"
-                                        title="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}">
+                                    <button type="submit" class="btn btn-sm btn-secondary" title="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}">
                                         <i class="fa-solid {{ $user->is_active ? 'fa-ban' : 'fa-check' }}"></i>
                                     </button>
                                 </form>
-                                <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
-                                    id="del-user-{{ $user->id }}" style="display:inline;">
+
+                                <form method="POST" action="{{ route('admin.users.destroy', $user) }}" id="del-user-{{ $user->id }}" style="display:inline;">
                                     @csrf @method('DELETE')
-                                    <button type="button" class="btn btn-sm" style="background:#fff3f3;color:var(--red);"
-                                        onclick="confirmDelete('del-user-{{ $user->id }}')" title="Hapus">
+                                    <button type="button" class="btn btn-sm" style="background:#fff3f3;color:var(--red);" onclick="confirmDelete('del-user-{{ $user->id }}')" title="Hapus">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </form>
@@ -155,6 +167,8 @@
                 @endforelse
             </tbody>
         </table>
+
         <div style="padding:14px 18px;">{{ $users->links() }}</div>
     </div>
 @endsection
+

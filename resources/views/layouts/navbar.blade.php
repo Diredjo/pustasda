@@ -1,14 +1,8 @@
 <nav class="navbar">
     {{-- Brand --}}
     <div class="navbar-brand">
-        @php $logo = \App\Models\AppSetting::get('app_logo','') @endphp
-        @if($logo && file_exists(public_path('images/'.$logo)))
-            <img src="{{ asset('images/'.$logo) }}" alt="PUSTASDA">
-        @else
-            <div class="brand-fallback"><i class="fa-solid fa-trophy"></i></div>
-        @endif
-        <span>PUSTASDA</span>
-    </div>
+    <img src="{{ asset('images/LogoPustasda.png') }}" alt="PUSTASDA">
+</div>
 
     <div class="navbar-divider"></div>
     <span class="navbar-page-title">{{ $pageTitle ?? 'Dashboard' }}</span>
